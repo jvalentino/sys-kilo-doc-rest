@@ -1,0 +1,81 @@
+management:
+  apikey: 123
+  securePath: /doc
+  health:
+    circuitbreakers:
+      enabled: 'true'
+    ratelimiters:
+      enabled: 'true'
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+spring:
+  application:
+    name: sys-kilo-doc-test
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+logging:
+  file:
+    path: .
+    name: spring-boot.log
+  level:
+    org:
+      springframework:
+        web: DEBUG
+springdoc:
+  swagger-ui:
+    url: /v3/api-docs.yaml
+server:
+  port: ${PORT:8080}
+resilience4j:
+  circuitbreaker:
+    instances:
+      DocAll:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 5
+        ringBufferSizeInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        maxRetryAttempts: 3
+        waitDuration: 5000
+      DocUpload:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 5
+        ringBufferSizeInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        maxRetryAttempts: 3
+        waitDuration: 5000
+      DocVersions:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 5
+        ringBufferSizeInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        maxRetryAttempts: 3
+        waitDuration: 5000
+      DocDownload:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 5
+        ringBufferSizeInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        maxRetryAttempts: 3
+        waitDuration: 5000
+      DocVersionNew:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 5
+        ringBufferSizeInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        maxRetryAttempts: 3
+        waitDuration: 5000
+
+
+
