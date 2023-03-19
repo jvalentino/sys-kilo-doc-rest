@@ -13,5 +13,6 @@ class DocDto {
     String mimeType
     String userId
     String docId
+    String dateTime
 
 }

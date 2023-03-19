@@ -76,6 +76,12 @@ resilience4j:
         failureRateThreshold: 50
         maxRetryAttempts: 3
         waitDuration: 5000
+kafka:
+  bootstrap-servers: localhost:9092
 
+  producer:
+    client-id: ${spring.application.name}
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 

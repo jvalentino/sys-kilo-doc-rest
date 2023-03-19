@@ -41,6 +41,10 @@ dependencies {
 
 	// DB management
 
+	// Kafka
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.apache.kafka:kafka-streams'
+	implementation 'org.springframework.kafka:spring-kafka'
 
 	// MD5
 	implementation group: 'commons-codec', name: 'commons-codec', version: '1.15'

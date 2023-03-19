@@ -6,6 +6,7 @@ import com.github.jvalentino.kilo.dto.DocListDto
 import com.github.jvalentino.kilo.dto.ResultDto
 import com.github.jvalentino.kilo.dto.ViewVersionDto
 import com.github.jvalentino.kilo.service.DocService
+import com.github.jvalentino.kilo.util.DateGenerator
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
@@ -55,7 +56,7 @@ class DocRest {
     @CircuitBreaker(name = 'DocUpload')
     @PostMapping('/doc/upload/user/{userId}')
     ResultDto upload(@RequestBody DocDto file, @PathVariable(value='userId') String userId) {
-        //docService.uploadNewDoc(userId, file, DateGenerator.date())
+        docService.uploadNewDoc(userId, file, DateGenerator.date())
         new ResultDto()
     }
 
