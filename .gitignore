@@ -9,6 +9,7 @@ build/
 !**/src/test/**/build/
 dev-db
 prod-db
+docker-data
 
 ### STS ###
 .apt_generated
