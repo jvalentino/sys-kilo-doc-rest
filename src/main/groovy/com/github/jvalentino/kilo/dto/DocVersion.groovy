@@ -13,9 +13,9 @@ import java.sql.Timestamp
 @CompileDynamic
 class DocVersion {
 
-    Long docVersionId
+    String docVersionId
 
-    Long versionNum
+    String versionNum
 
     Doc doc
 

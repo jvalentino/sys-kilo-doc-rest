@@ -54,14 +54,14 @@ class DocRest {
 
     @CircuitBreaker(name = 'DocUpload')
     @PostMapping('/doc/upload/user/{userId}')
-    ResultDto upload(@RequestBody DocDto file, @PathVariable(value='userId') Long userId) {
+    ResultDto upload(@RequestBody DocDto file, @PathVariable(value='userId') String userId) {
         //docService.uploadNewDoc(userId, file, DateGenerator.date())
         new ResultDto()
     }
 
     @CircuitBreaker(name = 'DocVersions')
     @GetMapping('/doc/versions/{docId}')
-    ViewVersionDto versions(@PathVariable(value='docId') Long docId) {
+    ViewVersionDto versions(@PathVariable(value='docId') String docId) {
         ViewVersionDto result = new ViewVersionDto()
         result.with {
             //doc = docService.retrieveDocVersions(docId)
@@ -75,14 +75,14 @@ class DocRest {
     // https://www.baeldung.com/servlet-download-file
     @CircuitBreaker(name = 'DocDownload')
     @GetMapping('/doc/version/download/{docVersionId}')
-    DocDto downloadVersion(@PathVariable(value='docVersionId') Long docVersionId) {
+    DocDto downloadVersion(@PathVariable(value='docVersionId') String docVersionId) {
         //docService.retrieveVersion(docVersionId)
     }
 
     @CircuitBreaker(name = 'DocVersionNew')
     @PostMapping('/doc/version/new/{docId}/user/{userId}')
-    ResultDto upload(@RequestBody DocDto file, @PathVariable(value='docId') Long docId,
-                     @PathVariable(value='userId') Long userId) {
+    ResultDto upload(@RequestBody DocDto file, @PathVariable(value='docId') String docId,
+                     @PathVariable(value='userId') String userId) {
         //docService.uploadNewVersion(userId, file, DateGenerator.date(), docId)
 
         new ResultDto()

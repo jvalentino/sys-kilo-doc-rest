@@ -11,5 +11,7 @@ class DocDto {
     String fileName
     String base64
     String mimeType
+    String userId
+    String docId
 
 }

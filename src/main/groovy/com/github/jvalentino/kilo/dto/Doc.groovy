@@ -13,7 +13,7 @@ import java.sql.Timestamp
 @CompileDynamic
 class Doc {
 
-    Long docId
+    String docId
 
     String name
 
@@ -21,11 +21,11 @@ class Doc {
 
     Object createdByUser
 
-    Long createdByUserId
+    String createdByUserId
 
     Object updatedByUser
 
-    Long updatedByUserId
+    String updatedByUserId
 
     @JsonFormat(pattern= DateUtil.ISO)
     Timestamp createdDateTime
