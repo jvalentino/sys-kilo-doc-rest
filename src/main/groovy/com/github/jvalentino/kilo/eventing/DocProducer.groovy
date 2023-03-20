@@ -1,4 +1,4 @@
-package com.github.jvalentino.kilo.repo
+package com.github.jvalentino.kilo.eventing
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.jvalentino.kilo.dto.DocDto

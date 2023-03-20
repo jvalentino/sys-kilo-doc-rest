@@ -14,5 +14,6 @@ class DocDto {
     String userId
     String docId
     String dateTime
+    String docVersionId
 
 }

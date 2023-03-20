@@ -37,7 +37,7 @@ class DocRest {
     ResponseEntity<DocListDto> dashboard() {
         DocListDto dashboard = new DocListDto()
         dashboard.with {
-            //documents = docService.allDocs()
+            documents = docService.allDocs()
         }
 
         new ResponseEntity<DocListDto>(dashboard, HttpStatus.OK)
@@ -84,8 +84,7 @@ class DocRest {
     @PostMapping('/doc/version/new/{docId}/user/{userId}')
     ResultDto upload(@RequestBody DocDto file, @PathVariable(value='docId') String docId,
                      @PathVariable(value='userId') String userId) {
-        //docService.uploadNewVersion(userId, file, DateGenerator.date(), docId)
-
+        docService.uploadNewDoc(userId, file, DateGenerator.date(), docId)
         new ResultDto()
     }
 

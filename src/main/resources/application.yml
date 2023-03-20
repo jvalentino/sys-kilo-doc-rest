@@ -16,6 +16,12 @@ management:
 spring:
   application:
     name: sys-kilo-doc-test
+  data:
+    cassandra:
+      local-datacenter: datacenter1
+      port: 9042
+      contact-points: localhost
+      keyspace-name: examplesys
   servlet:
     multipart:
       max-file-size: 100MB

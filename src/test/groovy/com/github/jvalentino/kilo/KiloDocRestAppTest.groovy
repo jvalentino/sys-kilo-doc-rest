@@ -13,6 +13,7 @@ class KiloDocRestAppTest extends Specification {
     def "test main"() {
         when:
         KiloDocRestApp.main(null)
+        println new File('sample.pdf').bytes.encodeBase64()
 
         then:
         1 * SpringApplication.run(KiloDocRestApp, null)
