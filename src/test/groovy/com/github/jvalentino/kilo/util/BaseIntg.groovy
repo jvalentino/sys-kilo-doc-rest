@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration
+import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -17,7 +19,10 @@ import spock.lang.Specification
 /**
  * TBD
  */
-@EnableAutoConfiguration(exclude = [LiquibaseAutoConfiguration])
+@EnableAutoConfiguration(exclude=[
+        CassandraDataAutoConfiguration,
+        CassandraAutoConfiguration
+])
 @ExtendWith(SpringExtension)
 @SpringBootTest
 @AutoConfigureMockMvc
