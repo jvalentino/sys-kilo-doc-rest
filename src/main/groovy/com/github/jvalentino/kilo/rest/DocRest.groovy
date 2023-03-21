@@ -43,12 +43,18 @@ class DocRest {
         new ResponseEntity<DocListDto>(dashboard, HttpStatus.OK)
     }
 
+    @GetMapping('/doc/populate')
+    ResultDto populate() {
+        docService.populateTestData()
+        new ResultDto()
+    }
+
     @GetMapping('/doc/count')
     @CircuitBreaker(name = 'DocCount')
     CountDto countDocs() {
         CountDto result = new CountDto()
         result.with {
-            //value = docService.countDocuments()
+            value = docService.countDocuments()
         }
         result
     }
@@ -65,10 +71,10 @@ class DocRest {
     ViewVersionDto versions(@PathVariable(value='docId') String docId) {
         ViewVersionDto result = new ViewVersionDto()
         result.with {
-            //doc = docService.retrieveDocVersions(docId)
+            doc = docService.retrieveDocVersions(docId)
         }
 
-        //log.info("Doc ${docId} has ${result.doc.versions.size()} versions")
+        log.info("Doc ${docId} has ${result.doc.versions.size()} versions")
 
         result
     }

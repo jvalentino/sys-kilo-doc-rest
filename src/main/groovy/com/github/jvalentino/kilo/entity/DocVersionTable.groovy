@@ -8,19 +8,23 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKey
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn
 import org.springframework.data.cassandra.core.mapping.Table
 
+import java.nio.ByteBuffer
 import java.sql.Timestamp
 
 /**
- * The doc table in cassandra
+ * doc_version table in cassandra.
  * @author john.valentino
  */
 @CompileDynamic
-@Table(value='doc')
-class DocTable {
+@Table(value='doc_version')
+class DocVersionTable {
 
     @Id
-    @PrimaryKey('doc_id')
-    @PrimaryKeyColumn(name = 'doc_id', ordinal = 0, type = PrimaryKeyType.PARTITIONED)
+    @PrimaryKey('doc_version_id')
+    @PrimaryKeyColumn(name = 'doc_version_id', ordinal = 0, type = PrimaryKeyType.PARTITIONED)
+    @Column(value = 'doc_version_id')
+    UUID docVersionId
+
     @Column(value = 'doc_id')
     UUID docId
 
@@ -33,13 +37,10 @@ class DocTable {
     @Column(value = 'created_by_user_id')
     String createdByUserId
 
-    @Column(value = 'updated_by_user_id')
-    String updatedByUserId
-
     @Column(value = 'created_date_time')
     Timestamp createdDateTime
 
-    @Column(value = 'updated_date_time')
-    Timestamp updatedDateTime
+    @Column
+    ByteBuffer data
 
 }

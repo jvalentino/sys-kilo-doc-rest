@@ -1,6 +1,7 @@
 package com.github.jvalentino.kilo.dto
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.github.jvalentino.kilo.util.DateUtil
 import groovy.transform.CompileDynamic
 
@@ -17,6 +18,7 @@ class DocVersion {
 
     String versionNum
 
+    @JsonIgnore
     Doc doc
 
     byte[] data
@@ -26,7 +28,7 @@ class DocVersion {
 
     Object createdByUser
 
-    Long createdByUserId
+    String createdByUserId
 
     DocVersion() { }
 

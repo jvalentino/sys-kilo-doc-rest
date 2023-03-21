@@ -89,4 +89,3 @@ kafka:
     client-id: ${spring.application.name}
     key-serializer: org.apache.kafka.common.serialization.StringSerializer
     value-serializer: org.apache.kafka.common.serialization.StringSerializer
-

@@ -9,6 +9,8 @@ import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoCo
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.data.cassandra.core.CassandraTemplate
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
@@ -33,10 +35,13 @@ abstract class BaseIntg extends Specification {
     @Autowired
     MockMvc mvc
 
-
     Object toObject(MvcResult response, Class clazz) {
         String json = response.getResponse().getContentAsString()
         new ObjectMapper().readValue(json, clazz)
+    }
+
+    String toJson(Object obj) {
+        new ObjectMapper().writeValueAsString(obj)
     }
 
 }
