@@ -4,6 +4,7 @@ import com.github.jvalentino.kilo.dto.CountDto
 import com.github.jvalentino.kilo.dto.Doc
 import com.github.jvalentino.kilo.dto.DocDto
 import com.github.jvalentino.kilo.dto.DocListDto
+import com.github.jvalentino.kilo.dto.DocVersion
 import com.github.jvalentino.kilo.dto.ResultDto
 import com.github.jvalentino.kilo.dto.ViewVersionDto
 import com.github.jvalentino.kilo.entity.DocTable
@@ -142,15 +143,58 @@ class DocRestIntgTest extends BaseIntg {
         result.success
     }
 
+    void "test /doc/version/new/{docId}/user/{userId}"() {
+        given:
+        DocDto file = new DocDto()
+        file.with {
+            fileName = 'alpha.txt'
+            base64 = 'bravo'.bytes.encodeBase64()
+            mimeType = 'plain/text'
+        }
+
+        and:
+        String docUuid = '8ad96754-d281-403f-b767-c01f31ce470a'
+
+        when:
+        MvcResult response = mvc.perform(
+                post("/doc/version/new/${docUuid}/user/456")
+                        .header('X-Auth-Token', '123')
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(toJson(file)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn()
+
+        then:
+        1 * DateGenerator.date() >> DateUtil.toDate('2022-01-02T00:00:00.000+0000')
+
+        and:
+        verify(docProducer).produce(docProducerCaptor.capture())
+        DocDto sent = docProducerCaptor.getValue()
+        sent.docId == docUuid
+        sent.docVersionId != sent.docId
+        sent.mimeType == 'plain/text'
+        sent.dateTime == '2022-01-02T00:00:00.000+0000'
+        sent.fileName == 'alpha.txt'
+        sent.base64 == 'YnJhdm8='
+        sent.userId == '456'
+
+        and:
+        ResultDto result = toObject(response, ResultDto)
+        result.success
+    }
+
     void "Test /doc/versions/{docId}"() {
         given:
-        String uuid = '8ad96754-d281-403f-b767-c01f31ce470a'
+        String docUuid = '8ad96754-d281-403f-b767-c01f31ce470a'
+        String versionUuid = 'e189a9c5-9f68-42e5-a746-a9fa60dc9504'
         Timestamp timestamp = new Timestamp(DateUtil.toDate('2022-01-02T00:00:00.000+0000').time)
 
         and:
         DocTable docRecord = new DocTable()
         docRecord.with {
-            docId = UUID.fromString(uuid)
+            docId = UUID.fromString(docUuid)
             name = 'sample.txt'
             mimeType = 'plain/text'
             createdByUserId = '123'
@@ -160,13 +204,12 @@ class DocRestIntgTest extends BaseIntg {
         }
         Optional<DocTable> optionalDocTable = GroovyMock()
         1 * optionalDocTable.get() >> docRecord
-        org.mockito.Mockito.when(docRepo.findById(UUID.fromString(uuid))).thenReturn(optionalDocTable)
+        org.mockito.Mockito.when(docRepo.findById(UUID.fromString(docUuid))).thenReturn(optionalDocTable)
 
         and:
-        //= docVersionRepo.findByDocId(docRecord.docId)
         DocVersionTable version = new DocVersionTable()
         version.with {
-            docVersionId = UUID.randomUUID()
+            docVersionId = UUID.fromString(versionUuid)
             docId = docRecord.docId
             name = 'sample.txt'
             mimeType = 'plain/text'
@@ -179,7 +222,7 @@ class DocRestIntgTest extends BaseIntg {
 
         when:
         MvcResult response = mvc.perform(
-                get("/doc/versions/${uuid}").header('X-Auth-Token', '123'))
+                get("/doc/versions/${docUuid}").header('X-Auth-Token', '123'))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn()
@@ -187,13 +230,57 @@ class DocRestIntgTest extends BaseIntg {
         then:
         ViewVersionDto result = toObject(response, ViewVersionDto)
         result
+
+        and:
         result.doc
-        //result.doc.docId == docRecord.docId
+        result.doc.docId == docUuid
         result.doc.name == 'sample.txt'
         result.doc.mimeType == 'plain/text'
         result.doc.createdByUserId == '123'
         result.doc.updatedByUserId == '456'
         result.doc.createdDateTime == timestamp
         result.doc.updatedDateTime == timestamp
+
+        and:
+        DocVersion docVersion = result.doc.versions.first()
+        docVersion
+        docVersion.docVersionId == versionUuid
+        docVersion.versionNum == '1'
+        docVersion.data == null
+        docVersion.createdDateTime == timestamp
+        docVersion.createdByUserId == '123'
+
+    }
+
+    void "Test /doc/version/download/{docVersionId}"() {
+        given:
+        String docVersionId = '8ad96754-d281-403f-b767-c01f31ce470a'
+
+        and:
+        DocVersionTable version = new DocVersionTable()
+        version.with {
+            name = 'sample.txt'
+            mimeType = 'plain/text'
+            data = ByteBuffer.wrap('hello'.bytes)
+        }
+
+        and:
+        Optional<DocVersionTable> optional = GroovyMock()
+        1 * optional.get() >> version
+        org.mockito.Mockito.when(docVersionRepo.findById(UUID.fromString(docVersionId))).thenReturn(optional)
+
+        when:
+        MvcResult response = mvc.perform(
+                get("/doc/version/download/${docVersionId}")
+                        .header('X-Auth-Token', '123'))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn()
+
+        then:
+        DocDto result = toObject(response, DocDto)
+        result.base64 == 'aGVsbG8='
+        result.fileName == 'sample.txt'
+        result.mimeType == 'plain/text'
     }
 }

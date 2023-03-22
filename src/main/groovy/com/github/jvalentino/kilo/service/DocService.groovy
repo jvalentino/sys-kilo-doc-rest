@@ -102,7 +102,7 @@ class DocService {
         results
     }
 
-    void uploadNewDoc(String userId, DocDto file, Date date, String docId=UUID.randomUUID().toString()) {
+    void uploadNewDoc(String userId, DocDto file, Date date, String docId = UUID.randomUUID().toString()) {
         file.docId = docId
         file.userId = userId
         file.dateTime = DateUtil.fromDate(date)
@@ -140,6 +140,19 @@ class DocService {
             result.versions.add(version)
 
             counter++
+        }
+
+        result
+    }
+
+    DocDto retrieveVersion(String docVersionId) {
+        DocVersionTable version = docVersionRepo.findById(UUID.fromString(docVersionId)).get()
+
+        DocDto result = new DocDto()
+        result.with {
+            fileName = version.name
+            mimeType = version.mimeType
+            base64 = version.data.array().encodeBase64()
         }
 
         result

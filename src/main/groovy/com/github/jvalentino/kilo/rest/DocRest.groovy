@@ -83,7 +83,7 @@ class DocRest {
     @CircuitBreaker(name = 'DocDownload')
     @GetMapping('/doc/version/download/{docVersionId}')
     DocDto downloadVersion(@PathVariable(value='docVersionId') String docVersionId) {
-        //docService.retrieveVersion(docVersionId)
+        docService.retrieveVersion(docVersionId)
     }
 
     @CircuitBreaker(name = 'DocVersionNew')

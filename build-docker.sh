@@ -1,8 +1,8 @@
 #!/bin/bash
 
-NAME=sys-juliet-rest-doc
+NAME=sys-kilo-doc-rest
 VERSION=latest
-HELM_NAME=sys-rest-doc
+HELM_NAME=sys-doc-rest
 
 helm delete $HELM_NAME || true
 minikube image rm $NAME:$VERSION

@@ -1,6 +1,6 @@
-# System Juliet REST Doc
+# System Kilo Doc Rest
 
-This application serves as the restful services as part of the overall https://github.com/jvalentino/sys-juliet project as they relate to documents. For system level details, please see that location.
+This application serves as the restful services as part of the overall https://github.com/jvalentino/sys-kilo project as they relate to documents. For system level details, please see that location.
 
 Prerequisites
 
@@ -8,10 +8,12 @@ Prerequisites
 - IntelliJ
 - Docker
 - Docker Compose
-- pgadmin
 - Git
 - Minikube
 - Helm
+- Cassandra (for cqlsh)
+- DbViz
+- Kafka IDE
 
 All of these you can get in one command using this installation automation (if you are on a Mac): https://github.com/jvalentino/setup-automation
 
@@ -52,7 +54,7 @@ All of these you can get in one command using this installation automation (if y
 
 # Summary
 
-## Database
+## Infrastructure
 
 You launch the database container by running:
 
@@ -61,6 +63,14 @@ docker compose up -d
 ```
 
 This sill executes the container in detached mode, and leave it running in the background.
+
+You then have to create the Kafka topic:
+
+```bash
+./create-topics.sh
+```
+
+
 
 ## IDE Testing
 
@@ -122,14 +132,6 @@ If it worked you can access it via http://localhost:8080/swagger-ui/index.html
 
 ## Runtime Validation
 
-The first step is to refresh the database to the expected default state:
-
-```bash
-./gradlew refreshDb
-```
-
-You need to specifically do this so you set the default admin account to username/password: `admin/37e098f0-b78d-4a48-adf1-e6c2568d4ea1`.
-
 It is then recommended you run thus application on port 8080, which can be done in two ways:
 
 **IDE**
@@ -139,7 +141,7 @@ It is then recommended you run thus application on port 8080, which can be done 
 **Command-Line**
 
 ```bash
-java -jar --server.port=8080 build/libs/sys-juliet-rest-doc-0.0.1.jar
+java -jar --server.port=8080 build/libs/sys-kilo-doc-rest-0.0.1.jar
 ```
 
 ### Swagger UI
@@ -183,6 +185,12 @@ Used for uploading a new document, where that given document becomes the first v
 This uploads a new version to an existing document. The input is a file name and then a byte array: src/test/resources/doc-dto.json
 
 ![01](wiki/swagger-6.png)
+
+### /doc/populate
+
+Due to the actual data population happening in a different application entirely, I added this endpoint to automatically populate the database with a document and two versions:
+
+![01](wiki/swagger-7.png)
 
 
 
@@ -238,9 +246,9 @@ This script consists of the following:
 ```bash
 #!/bin/bash
 
-NAME=sys-juliet-rest-doc
+NAME=sys-kilo-doc-rest
 VERSION=latest
-HELM_NAME=backend
+HELM_NAME=sys-doc-rest
 
 helm delete $HELM_NAME || true
 minikube image rm $NAME:$VERSION
@@ -261,7 +269,7 @@ The container for running this application consists of two parts:
 ```docker
 FROM openjdk:11
 WORKDIR .
-COPY build/libs/sys-juliet-rest-doc-0.0.1.jar /usr/local/sys-juliet-rest-doc-0.0.1.jar
+COPY build/libs/sys-kilo-doc-rest-0.0.1.jar /usr/local/sys-kilo-doc-rest-0.0.1.jar
 EXPOSE 8080
 COPY config/docker/start.sh /usr/local/start.sh
 
@@ -286,7 +294,7 @@ ENTRYPOINT ["/usr/local/start.sh"]
     Match *
     Host elasticsearch-master
     Port 9200
-    Index sys-rest-doc
+    Index sys-doc-rest
     Suppress_Type_Name On
 ```
 
@@ -302,7 +310,10 @@ cd /opt/fluent-bit/bin
 ./fluent-bit -c fluentbit.conf > fluentbit.log 2>&1 &
 
 cd /usr/local
-java -jar -Dspring.datasource.url=jdbc:postgresql://pg-primary-postgresql:5432/examplesys sys-juliet-rest-doc-0.0.1.jar
+java -jar \
+	-Dspring.data.cassandra.contact-points=cassandra \
+	-Dkafka.bootstrap-servers=kafka:9092 \
+	sys-kilo-doc-rest-0.0.1.jar
 ```
 
 ## OpenAPI
@@ -320,49 +331,6 @@ implementation 'org.springdoc:springdoc-openapi-ui:1.6.15'
 implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.6.15'
 implementation 'org.springdoc:springdoc-openapi-groovy:1.6.15'
 ```
-
-### SpringWebConfig
-
-```groovy
-@EnableWebMvc
-@Configuration
-@Slf4j
-@CompileDynamic
-@SuppressWarnings(['UnnecessarySetter'])
-class SpringWebConfig implements WebMvcConfigurer {
-
-    ObjectMapper jsonMapper() {
-        new CustomObjectMapper()
-    }
-
-    @Override
-    void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new StringHttpMessageConverter())
-        converters.add(new MappingJackson2HttpMessageConverter(jsonMapper()))
-
-        // requires for prometheus endpoint
-        StringHttpMessageConverter converter = new StringHttpMessageConverter()
-        converter.setSupportedMediaTypes(Arrays.asList(
-                MediaType.TEXT_PLAIN,
-                new MediaType('application', 'openmetrics-text')))
-        converters.add(converter)
-
-        converters.add(new ByteArrayHttpMessageConverter())
-
-        // No converter for [class java.lang.String] with preset Content-Type
-        // 'application/openmetrics-text;version=1.0.0;charset=utf-8']
-    }
-
-}
-
-```
-
-Had to add 
-
-- `converters.add(new StringHttpMessageConverter())`
-- `converters.add(new ByteArrayHttpMessageConverter())`
-
-...which allows http://localhost:8080//v3/api-docs.yaml to render, which is important in the next step
 
 ### application.properties
 
@@ -684,3 +652,151 @@ management:
 ```
 
 The involved properties were put in the application.properties, so that we can also change them at runtime from a deployment perspective.
+
+## Cassandra
+
+There are two things I gave up on, because I could not get them to work after 2 days of fighting with them:
+
+- Cassandra Unit - I tried using the embedded server and invoking the embedded server directly, and each step would lead to more problems to be solved. Instead, I resorted to just mocking the Cassandra repository level in the integration tests.
+- Liquidbase for Cassandra - I tried the Gradle Plugin, the Maven Plugin, and even resorted to using the liquibase CLI. Nothing worked, and I ended up resorting to a CQL file as a part of the database project that doesn't do stuff unless it has to.
+
+### build.gradle
+
+```groovy
+implementation 'org.springframework.boot:spring-boot-starter-data-cassandra'
+```
+
+### CassandraConfig
+
+```groovy
+@Configuration
+@EnableCassandraRepositories(basePackages = 'com.github.jvalentino.kilo.repo')
+class CassandraConfig {
+
+}
+```
+
+### application.yml
+
+```yaml
+spring:
+  data:
+    cassandra:
+      local-datacenter: datacenter1
+      port: 9042
+      contact-points: localhost
+      keyspace-name: examplesys
+```
+
+### Table Mappings
+
+```groovy
+@Table(value='doc')
+class DocTable {
+
+    @Id
+    @PrimaryKey('doc_id')
+    @PrimaryKeyColumn(name = 'doc_id', ordinal = 0, type = PrimaryKeyType.PARTITIONED)
+    @Column(value = 'doc_id')
+    UUID docId
+
+    @Column
+    String name
+
+    @Column(value = 'mime_type')
+    String mimeType
+```
+
+Fairly standard, except that you have to list the primary key column in 4 different ways, otherwise findById doesn't work.
+
+### Repository Mappings
+
+```groovy
+@Repository
+interface DocVersionRepo extends CassandraRepository<DocVersionTable, UUID> {
+
+    @Query('select * from doc_version where doc_id = ?0')
+    List<DocVersionTable> findByDocId(UUID docId)
+
+}
+```
+
+Standard, except for that you have to use Native CQL instead of HQL like you wood with Hibernate.
+
+### BaseIntg
+
+```groovy
+@EnableAutoConfiguration(exclude=[
+        CassandraDataAutoConfiguration,
+        CassandraAutoConfiguration
+])
+@ExtendWith(SpringExtension)
+@SpringBootTest
+@AutoConfigureMockMvc
+@TestPropertySource(
+        locations = "classpath:integration.properties")
+abstract class BaseIntg extends Specification {
+```
+
+In order to run an integration test without it trying to connect to Cassandra, I had to disable the auto connection by excluding:
+
+- CassandraDataAutoConfiguration
+- CassandraAutoConfiguration
+
+### DbViz
+
+![01](wiki/cassandra-1.png)
+
+## Kafka
+
+### build.gradle
+
+```groovy
+// Kafka
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.apache.kafka:kafka-streams'
+	implementation 'org.springframework.kafka:spring-kafka'
+
+```
+
+### application.yml
+
+```yaml
+kafka:
+  bootstrap-servers: localhost:9092
+  producer:
+    client-id: ${spring.application.name}
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.apache.kafka.common.serialization.StringSerializer
+```
+
+### DocProducer
+
+```groovy
+@Component
+class DocProducer {
+
+    @Autowired
+    KafkaTemplate<String, String> kafkaTemplate
+
+    void produce(DocDto doc) {
+        kafkaTemplate.send('doc', doc.docId, toJson(doc))
+    }
+
+    String toJson(Object obj) {
+        new ObjectMapper().writeValueAsString(obj)
+    }
+
+}
+```
+
+This just injects the KafkaTemplate into a reusable components, that turns an object into JSON on the doc topic, but that also uses the ID as the key.
+
+### Kafka IDE
+
+This is useful for seeing what is in Kafka.
+
+![01](wiki/kafka-1.png)
+
+
+
