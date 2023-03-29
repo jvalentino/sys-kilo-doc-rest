@@ -15,13 +15,21 @@ management:
       show-details: always
 spring:
   application:
-    name: sys-kilo-doc-test
+    name: sys-kilo-doc-rest
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      client-id: ${spring.application.name}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
   data:
     cassandra:
       local-datacenter: datacenter1
       port: 9042
       contact-points: localhost
       keyspace-name: examplesys
+      #username: cassandra
+      #password: cassandra
   servlet:
     multipart:
       max-file-size: 100MB
@@ -82,10 +90,3 @@ resilience4j:
         failureRateThreshold: 50
         maxRetryAttempts: 3
         waitDuration: 5000
-kafka:
-  bootstrap-servers: localhost:9092
-
-  producer:
-    client-id: ${spring.application.name}
-    key-serializer: org.apache.kafka.common.serialization.StringSerializer
-    value-serializer: org.apache.kafka.common.serialization.StringSerializer

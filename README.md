@@ -312,7 +312,9 @@ cd /opt/fluent-bit/bin
 cd /usr/local
 java -jar \
 	-Dspring.data.cassandra.contact-points=cassandra \
-	-Dkafka.bootstrap-servers=kafka:9092 \
+	-Dspring.data.cassandra.password=cassandra \
+	-Dspring.data.cassandra.username=cassandra \
+	-Dspring.kafka.bootstrap-servers=kafka-service:9094 \
 	sys-kilo-doc-rest-0.0.1.jar
 ```
 
@@ -762,12 +764,13 @@ In order to run an integration test without it trying to connect to Cassandra, I
 ### application.yml
 
 ```yaml
-kafka:
-  bootstrap-servers: localhost:9092
-  producer:
-    client-id: ${spring.application.name}
-    key-serializer: org.apache.kafka.common.serialization.StringSerializer
-    value-serializer: org.apache.kafka.common.serialization.StringSerializer
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      client-id: ${spring.application.name}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 ```
 
 ### DocProducer
